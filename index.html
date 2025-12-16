@@ -55,7 +55,7 @@ function prepareDrawInner(){
 function prepareDraw(){
 	_totalGift = parseInt($("#TotalGift").val());
 	_giftSeq = 0;
-	$("#DrawSeq, #DrawResult").html("-");
+	$("#DrawSeq, #DrawResult span").html("-");
 	$("table tbody").empty();
 	
 	let drawSuccess = false;
@@ -77,15 +77,30 @@ function drawNext(){
 		
 		$("#DrawSeq").html(heading.prefix1+gift.drawSeq);
 		if(myConfig.drawN > 1){
-			$("#DrawResult").html(heading.prefix2+gift.giftNumber).fadeIn(myConfig.speed);
+			$("#DrawResult span").hide().html(heading.prefix2+gift.giftNumber);
+			$("#DrawResult div").show().fadeOut(myConfig.speed, function(){
+				$("#DrawResult span").show();
+			});
 		}else{
-			$("#DrawResult").hide().html(heading.prefix2+gift.giftNumber).fadeIn(myConfig.speed);
+			$("#DrawResult span").hide().html(heading.prefix2+gift.giftNumber);
+			$("#DrawResult div").show().fadeOut(myConfig.speed, function(){
+				$("#DrawResult span").show();
+			});
 		}
-
+		let spinner = "<div class=\"spinner-border text-primary\" role=\"status\"></div>";
+		let tdId = "tdGiftNumber"+gift.giftNumber;
+		let tdHTML = "<td class=\"fst-italic\">"+heading.prefix1+gift.drawSeq+"</td><td class=\"fw-bold\" id=\""+tdId+"\">"+spinner+"<span style=\"display:none;\">"+heading.prefix2+gift.giftNumber+"</span></td>";
 		if(_giftSeq % giftPerCol == 1){
-			$("table tbody").append("<tr><td class=\"fst-italic\">"+heading.prefix1+gift.drawSeq+"</td><td class=\"fw-bold\">"+heading.prefix2+gift.giftNumber+"</td></tr>");
+			$("table tbody").append("<tr>"+tdHTML+"</tr>");
 		} else {
-			$("table tbody tr").last().append("<td class=\"fst-italic\">"+heading.prefix1+gift.drawSeq+"</td><td class=\"fw-bold\">"+heading.prefix2+gift.giftNumber+"</td>");
+			$("table tbody tr").last().append(tdHTML);
+		}
+		
+		$("#"+tdId+" div").fadeOut(myConfig.speed, function(){
+			$("#"+tdId+" span").show();
+		});
+		if(_totalGift <= _giftSeq){
+			$("#drawNext").prop("disabled",true); 
 		}
 	} else {
 		$("#drawNext").prop("disabled",true); 
@@ -107,7 +122,7 @@ function selectHeading(){
 	prepareDraw();
 }
 function changeDrawN(){
-	$("#drawNext").html((myConfig.drawN > 1)?("繼續抽獎<br/>("+myConfig.drawN+"位)"):"下一位");
+	$("#drawNext").html((myConfig.drawN > 1)?("繼續抽獎 ("+myConfig.drawN+"位)"):"下一位");
 }
 
 function selectDrawN(){
@@ -144,6 +159,7 @@ $(function() {
 .table tbody tr td:nth-child(4n+3), .table tbody tr td:nth-child(4n+4) {
 	background: #f0f0f0;
 }
+
 </style>
 </head>
 <body class="">
@@ -188,6 +204,7 @@ $(function() {
 						<option value="3">3</option>
 						<option value="4">4</option>
 						<option value="5">5</option>
+						<option value="10">10</option>
 					  </select>
 					  <label for="floatingSelect">每次抽獎數目</label>
 					</div>
@@ -216,23 +233,25 @@ $(function() {
   <div class="accordion-item">
     <h2 class="accordion-header">
       <button class="accordion-button fs-5 fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#panelsStayOpen-collapseOne" aria-expanded="true" aria-controls="panelsStayOpen-collapseOne">
-        人數/禮物總數設定
+        人數/禮物設定
       </button>
     </h2>
     <div id="panelsStayOpen-collapseOne" class="accordion-collapse collapse show">
       <div class="accordion-body">
         <div class="container text-left">
 			<div class="row">
-				<div class="col">
+				<div class="col col-sm-6 col-xs-12">
 					<label for="totalGift" class="form-label fw-bold">人數/禮物總數</label>
 				</div>
-				<div class="col">
-				<input type="number" min="0" max="1000" class="form-control" id="TotalGift" value="100">
+				<div class="col col-sm-6 col-xs-12">
+				<input type="number" min="1" max="1000" class="form-control" id="TotalGift" value="100">
 				</div>
 			</div>
 			<div class="row">
 				<div class="col">
-				<button id="prepareDraw" type="button" class="btn btn-primary" onclick="prepareDraw()">準備抽獎 / 重設</button>
+					<div class="">
+						<button id="prepareDraw" type="button" class="btn btn-primary" onclick="prepareDraw()">準備抽獎 / 重設</button>
+					</div>
 				</div>
 			</div>
 			</div>
@@ -249,47 +268,55 @@ $(function() {
       <div class="accordion-body">
 		<div class="container text-left" id="divResultContainer">
 		  <div class="row fst-italic">
-			<div class="col">
+			<div class="col col-sm-6 col-xs-12">
 			  <label class="form-label fw-bold"><span class="word1">抽獎順序</span> :</label>
 			</div>
-			<div class="col text-center" id="DrawSeq">
+			<div class="col col-sm-6 col-xs-12 text-center" id="DrawSeq">
 			  #N/A
 			</div>
 		  </div>
 		  <div class="row" id="divResult">
-			<div class="col">
+			<div class="col col-sm-6 col-xs-12">
 			  <label class="form-label fs-4 fw-bold"><span class="word2">抽出禮物編號</span> :</label>	
 			</div>
-			<div class="col" >
-			  <div id="DrawResult" class="border border-primary bg-warning text-black text-center fs-1 fw-bold">
+			<div class="col col-sm-6 col-xs-12" >
+			  <div id="DrawResult" class="border border-primary bg-warning text-black text-center fs-1 fw-bold" style="min-height:60px">
+			  <div class="spinner-border text-primary" style="display:none;width:50px; height:50px; margin:5px" role="status">
+			  </div>
+			  <span>
 			  #N/A
+			  </span>
 			  </div>
 			</div>
 		  </div>
-			<div class="row">
-			<div class="col"></div>
-			<div class="col text-center">
-				<button type="button" class="btn btn-primary btn-lg" id="drawNext" onclick="drawNextN()" disabled>下一位</button>
+		  <div class="row">
+			<div class="col col-sm-6 col-xs-12"></div>
+			<div class="col col-sm-6 col-xs-12 text-center">
+				<div class="p-1">
+					<button type="button" class="btn btn-primary btn-lg" id="drawNext" onclick="drawNextN()" disabled>下一位</button>
+				</div>
 			</div>
 			</div>
-			</div>
+		</div>
+		<div class="p-1">
 		 <div class="container text-left bg-light-subtle">
 			<div class="row">
-			<div class="col">
+			<div class="col col-sm-6 col-xs-12">
 			  <label class="form-label fw-bold">已抽出禮物數目 :</label>	
 			</div>
-			<div class="col fw-bold" id="GiftDrawn">
+			<div class="col col-sm-6 col-xs-12 fw-bold" id="GiftDrawn">
 			  #N/A
 			</div>
 		  </div>
 		  <div class="row">
-			<div class="col">
+			<div class="col col-sm-6 col-xs-12">
 			  <label class="form-label fw-bold">待抽禮物數目 :</label>	
 			</div>
-			<div class="col fw-bold" id="GiftToBeDraw">
+			<div class="col col-sm-6 col-xs-12 fw-bold" id="GiftToBeDraw">
 			  #N/A
 			</div>
 		  </div>
+		</div>
 		</div>
       </div>
     </div>
